@@ -4,6 +4,7 @@ import com.ProjetoFinal.ecommerce.model.pedido.ItemPedido;
 import com.ProjetoFinal.ecommerce.model.pedido.Pedido;
 import com.ProjetoFinal.ecommerce.model.pedido.StatusPedido;
 import com.ProjetoFinal.ecommerce.model.entrega.Entrega;
+import com.ProjetoFinal.ecommerce.model.promocao.Cupom;
 import com.ProjetoFinal.ecommerce.model.usuario.Endereco;
 import com.ProjetoFinal.ecommerce.model.usuario.Cliente;
 import com.ProjetoFinal.ecommerce.repository.EnderecoRepository;
@@ -25,22 +26,25 @@ public class PedidoService {
     private final CarrinhoService carrinhoService;
     private final EnderecoRepository enderecoRepository;
     private final EntregaRepository entregaRepository;
+    private final CupomService cupomService;
 
     public PedidoService(PedidoRepository pedidoRepository,
                          ClienteService clienteService,
                          EstoqueService estoqueService,
                          CarrinhoService carrinhoService,
                          EnderecoRepository enderecoRepository,
-                         EntregaRepository entregaRepository) {
+                         EntregaRepository entregaRepository,
+                         CupomService cupomService) {
         this.pedidoRepository = pedidoRepository;
         this.clienteService = clienteService;
         this.estoqueService = estoqueService;
         this.carrinhoService = carrinhoService;
         this.enderecoRepository = enderecoRepository;
         this.entregaRepository = entregaRepository;
+        this.cupomService = cupomService;
     }
 
-    public Pedido criarDesdoCarrinho(Long clienteId, Endereco enderecoEntregaRequest) {
+    public Pedido criarDesdoCarrinho(Long clienteId, Endereco enderecoEntregaRequest, String cupomCodigo, Long cupomProdutoId) {
         Cliente cliente = clienteService.buscarPorId(clienteId);
         var carrinho = carrinhoService.buscarPorCliente(clienteId);
 
@@ -64,7 +68,7 @@ public class PedidoService {
         }).toList();
 
         pedido.setItens(itensPedido);
-        pedido.setValorTotal(calcularTotal(itensPedido));
+        pedido.setValorTotal(calcularTotalComDesconto(itensPedido, cupomCodigo, cupomProdutoId));
 
         Pedido pedidoSalvo = pedidoRepository.save(pedido);
         Endereco enderecoEntrega = resolverEnderecoEntrega(clienteId, cliente, enderecoEntregaRequest);
@@ -119,6 +123,29 @@ public class PedidoService {
         return itens.stream()
                 .map(item -> item.getPrecoUnitario().multiply(BigDecimal.valueOf(item.getQuantidade())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal calcularTotalComDesconto(List<ItemPedido> itens, String cupomCodigo, Long cupomProdutoId) {
+        BigDecimal total = calcularTotal(itens);
+        if (cupomCodigo == null
+                || cupomCodigo.isBlank()
+                || cupomProdutoId == null) {
+            return total;
+        }
+
+        Cupom cupom = cupomService.validar(cupomCodigo, cupomProdutoId);
+        ItemPedido itemComCupom = itens.stream()
+                .filter(item -> item.getProduto().getId().equals(cupomProdutoId))
+                .findFirst()
+                .orElse(null);
+        if (itemComCupom == null) {
+            return total;
+        }
+
+        BigDecimal totalProduto = itemComCupom.getPrecoUnitario().multiply(BigDecimal.valueOf(itemComCupom.getQuantidade()));
+        BigDecimal desconto = totalProduto.multiply(cupom.getDesconto()).divide(BigDecimal.valueOf(100));
+        BigDecimal totalComDesconto = total.subtract(desconto);
+        return totalComDesconto.max(BigDecimal.ZERO);
     }
 
     public List<Pedido> listarTodos() {

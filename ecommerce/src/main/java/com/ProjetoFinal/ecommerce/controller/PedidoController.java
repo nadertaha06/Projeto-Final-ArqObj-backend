@@ -28,7 +28,9 @@ public class PedidoController {
     ) {
         Pedido pedido = pedidoService.criarDesdoCarrinho(
                 clienteId,
-                request == null ? null : request.toEndereco()
+                request == null ? null : request.toEndereco(),
+                request == null || request.cupomAplicado() == null ? null : request.cupomAplicado().codigo(),
+                request == null || request.cupomAplicado() == null ? null : request.cupomAplicado().produtoId()
         );
         return ResponseEntity
                 .created(URI.create("/api/pedidos/" + pedido.getId()))
@@ -189,12 +191,14 @@ public class PedidoController {
         }
     }
 
-    private record CriarPedidoRequest(EnderecoRequest enderecoEntrega) {
+    private record CriarPedidoRequest(EnderecoRequest enderecoEntrega, CupomAplicadoRequest cupomAplicado) {
         private com.ProjetoFinal.ecommerce.model.usuario.Endereco toEndereco() {
             if (enderecoEntrega == null) return null;
             return enderecoEntrega.toModel();
         }
     }
+
+    private record CupomAplicadoRequest(String codigo, Long produtoId) {}
 
     private record EnderecoRequest(
             String rua,
@@ -217,4 +221,5 @@ public class PedidoController {
             return endereco;
         }
     }
+
 }
