@@ -25,8 +25,12 @@ public class PagamentoService {
         Pedido pedido = pedidoRepository.findById(pedidoId)
                 .orElseThrow(() -> new NoSuchElementException("Pedido não encontrado: " + pedidoId));
 
-        if (pedido.getStatus() != StatusPedido.AGUARDANDO_PAGAMENTO) {
-            throw new IllegalStateException("Pedido não está aguardando pagamento");
+        if (pedido.getPagamento() != null) {
+            return pedido.getPagamento();
+        }
+
+        if (pedido.getStatus() != StatusPedido.AGUARDANDO_PAGAMENTO && pedido.getStatus() != StatusPedido.PAGO) {
+            throw new IllegalStateException("Pedido não está apto para processar pagamento");
         }
 
         pagamento.setValor(pedido.getValorTotal());

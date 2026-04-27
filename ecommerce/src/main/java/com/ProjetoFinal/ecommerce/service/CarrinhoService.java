@@ -27,19 +27,24 @@ public class CarrinhoService {
     }
 
     public Carrinho buscarOuCriarCarrinho(Long clienteId) {
-        return carrinhoRepository.findByClienteId(clienteId).orElseGet(() -> {
+        return carrinhoRepository.findDetailedByClienteId(clienteId).orElseGet(() -> {
             Cliente cliente = clienteService.buscarPorId(clienteId);
             Carrinho novo = Carrinho.builder().cliente(cliente).build();
-            return carrinhoRepository.save(novo);
+            Carrinho salvo = carrinhoRepository.save(novo);
+            return carrinhoRepository.findDetailedByClienteId(clienteId).orElse(salvo);
         });
     }
 
     public Carrinho buscarPorCliente(Long clienteId) {
-        return carrinhoRepository.findByClienteId(clienteId)
+        return carrinhoRepository.findDetailedByClienteId(clienteId)
                 .orElseThrow(() -> new NoSuchElementException("Carrinho não encontrado para cliente: " + clienteId));
     }
 
     public Carrinho adicionarItem(Long clienteId, Long produtoId, int quantidade) {
+        if (quantidade <= 0) {
+            throw new IllegalArgumentException("Quantidade deve ser maior que zero");
+        }
+
         Produto produto = produtoService.buscarPorId(produtoId);
 
         if (produto.getVendedor().getId().equals(clienteId)) {
@@ -67,18 +72,21 @@ public class CarrinhoService {
                         }
                 );
 
-        return carrinhoRepository.save(carrinho);
+        carrinhoRepository.save(carrinho);
+        return buscarPorCliente(clienteId);
     }
 
     public Carrinho removerItem(Long clienteId, Long produtoId) {
         Carrinho carrinho = buscarPorCliente(clienteId);
         carrinho.getItens().removeIf(item -> item.getProduto().getId().equals(produtoId));
-        return carrinhoRepository.save(carrinho);
+        carrinhoRepository.save(carrinho);
+        return buscarPorCliente(clienteId);
     }
 
     public Carrinho limpar(Long clienteId) {
         Carrinho carrinho = buscarPorCliente(clienteId);
         carrinho.getItens().clear();
-        return carrinhoRepository.save(carrinho);
+        carrinhoRepository.save(carrinho);
+        return buscarPorCliente(clienteId);
     }
 }

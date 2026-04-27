@@ -20,6 +20,13 @@ public class AvaliacaoService {
     }
 
     public Avaliacao criar(Avaliacao avaliacao, Long pedidoId) {
+        if (avaliacao.getCliente() == null || avaliacao.getCliente().getId() == null) {
+            throw new IllegalArgumentException("Cliente da avaliação é obrigatório");
+        }
+        if (avaliacao.getProduto() == null || avaliacao.getProduto().getId() == null) {
+            throw new IllegalArgumentException("Produto da avaliação é obrigatório");
+        }
+
         var pedido = pedidoRepository.findById(pedidoId)
                 .orElseThrow(() -> new NoSuchElementException("Pedido não encontrado: " + pedidoId));
 
@@ -30,6 +37,21 @@ public class AvaliacaoService {
         boolean clienteComprou = pedido.getCliente().getId().equals(avaliacao.getCliente().getId());
         if (!clienteComprou) {
             throw new IllegalStateException("O cliente não é o comprador deste pedido");
+        }
+
+        boolean pedidoContemProduto = pedido.getItens()
+                .stream()
+                .anyMatch(item -> item.getProduto().getId().equals(avaliacao.getProduto().getId()));
+        if (!pedidoContemProduto) {
+            throw new IllegalStateException("Produto não pertence ao pedido informado");
+        }
+
+        boolean jaAvaliou = avaliacaoRepository.existsByClienteIdAndProdutoId(
+                avaliacao.getCliente().getId(),
+                avaliacao.getProduto().getId()
+        );
+        if (jaAvaliou) {
+            throw new IllegalStateException("Cliente já avaliou este produto");
         }
 
         return avaliacaoRepository.save(avaliacao);

@@ -1,6 +1,6 @@
 package com.ProjetoFinal.ecommerce.model.produto;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
@@ -23,6 +23,6 @@ public class Categoria {
     private String descricao;
 
     @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference("categoria-produtos")
+    @JsonIgnore
     private List<Produto> produtos;
 }

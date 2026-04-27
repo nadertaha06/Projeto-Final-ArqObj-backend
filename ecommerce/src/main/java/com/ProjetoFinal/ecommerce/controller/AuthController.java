@@ -56,11 +56,11 @@ public class AuthController {
 
     @PostMapping("/register/cliente")
     public ResponseEntity<LoginResponse> registrarCliente(@RequestBody RegisterClienteRequest request) {
-        validarEmailECpf(request.getEmail(), request.getCpf());
+        validarEmailECpf(request.getEmail(), limparCpf(request.getCpf()));
 
         Cliente cliente = new Cliente();
         preencherDadosBase(cliente, request.getNome(), request.getEmail(),
-                request.getSenha(), request.getCpf(), request.getTelefone(), TipoUsuario.CLIENTE);
+                request.getSenha(), limparCpf(request.getCpf()), request.getTelefone(), TipoUsuario.CLIENTE);
 
         usuarioRepository.save(cliente);
         String token = jwtUtil.gerarToken(cliente);
@@ -71,11 +71,11 @@ public class AuthController {
 
     @PostMapping("/register/vendedor")
     public ResponseEntity<LoginResponse> registrarVendedor(@RequestBody RegisterVendedorRequest request) {
-        validarEmailECpf(request.getEmail(), request.getCpf());
+        validarEmailECpf(request.getEmail(), limparCpf(request.getCpf()));
 
         Vendedor vendedor = new Vendedor();
         preencherDadosBase(vendedor, request.getNome(), request.getEmail(),
-                request.getSenha(), request.getCpf(), request.getTelefone(), TipoUsuario.VENDEDOR);
+                request.getSenha(), limparCpf(request.getCpf()), request.getTelefone(), TipoUsuario.VENDEDOR);
         vendedor.setNomeLoja(request.getNomeLoja());
         vendedor.setAvaliacao(0.0);
 
@@ -93,6 +93,10 @@ public class AuthController {
         if (usuarioRepository.existsByCpf(cpf)) {
             throw new IllegalArgumentException("CPF já cadastrado: " + cpf);
         }
+    }
+
+    private String limparCpf(String cpf) {
+        return cpf == null ? null : cpf.replaceAll("[^0-9]", "");
     }
 
     private void preencherDadosBase(Usuario usuario, String nome, String email,

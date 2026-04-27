@@ -2,6 +2,7 @@ package com.ProjetoFinal.ecommerce.model.produto;
 
 import com.ProjetoFinal.ecommerce.model.usuario.Vendedor;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -47,7 +48,7 @@ public class Produto {
     private Vendedor vendedor;
 
     @OneToMany(mappedBy = "produto", cascade = CascadeType.ALL)
-    @JsonManagedReference("produto-avaliacoes")
+    @JsonIgnore
     @Builder.Default
     private List<Avaliacao> avaliacoes = new ArrayList<>();
 }

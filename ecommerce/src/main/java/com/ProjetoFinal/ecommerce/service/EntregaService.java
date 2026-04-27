@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 public class EntregaService {
@@ -49,8 +50,13 @@ public class EntregaService {
     }
 
     public Entrega buscarPorPedido(Long pedidoId) {
-        return entregaRepository.findByPedidoId(pedidoId)
+        Entrega entrega = entregaRepository.findByPedidoId(pedidoId)
                 .orElseThrow(() -> new NoSuchElementException("Entrega não encontrada para o pedido: " + pedidoId));
+        return sincronizarStatusLegado(entrega);
+    }
+
+    public Optional<Entrega> buscarPorPedidoOptional(Long pedidoId) {
+        return entregaRepository.findByPedidoId(pedidoId).map(this::sincronizarStatusLegado);
     }
 
     public Entrega atualizarStatus(Long id, String novoStatus) {
@@ -76,5 +82,32 @@ public class EntregaService {
             throw new NoSuchElementException("Entrega não encontrada: " + id);
         }
         entregaRepository.deleteById(id);
+    }
+
+    private Entrega sincronizarStatusLegado(Entrega entrega) {
+        Pedido pedido = entrega.getPedido();
+        if (pedido == null) {
+            return entrega;
+        }
+
+        String statusEsperado = switch (pedido.getStatus()) {
+            case PAGO, EM_PREPARACAO -> "AGUARDANDO_COLETA";
+            case ENVIADO -> "EM_TRANSITO";
+            case ENTREGUE -> "ENTREGUE";
+            case CANCELADO -> "CANCELADA";
+            default -> entrega.getStatus();
+        };
+
+        boolean precisaSalvar = !statusEsperado.equals(entrega.getStatus());
+        if (precisaSalvar) {
+            entrega.setStatus(statusEsperado);
+        }
+
+        if (pedido.getStatus() == StatusPedido.ENTREGUE && entrega.getDataEntrega() == null) {
+            entrega.setDataEntrega(LocalDateTime.now());
+            precisaSalvar = true;
+        }
+
+        return precisaSalvar ? entregaRepository.save(entrega) : entrega;
     }
 }

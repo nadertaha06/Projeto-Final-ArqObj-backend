@@ -1,5 +1,6 @@
 package com.ProjetoFinal.ecommerce.model.promocao;
 
+import com.ProjetoFinal.ecommerce.model.produto.Produto;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -34,4 +35,8 @@ public class Cupom {
 
     @Column(nullable = false)
     private Boolean ativo;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "produto_id", nullable = false)
+    private Produto produto;
 }
