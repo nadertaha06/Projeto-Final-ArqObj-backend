@@ -144,7 +144,9 @@ Produtos:
 - `GET /api/produtos/vendedor/{vendedorId}`
 - `GET /api/produtos/categoria/{categoriaId}`
 - `PUT /api/produtos/{id}`
-- `DELETE /api/produtos/{id}`
+- `PATCH /api/produtos/{id}/ativo?ativo=true|false`
+- `DELETE /api/produtos/{id}` *(soft delete: desativa o produto)*
+- Regra: produto inativo nao aparece em listagens publicas para compra.
 
 Categorias:
 
@@ -649,6 +651,9 @@ Tipos aceitos no `POST /api/pagamentos/pedido/{pedidoId}`:
 - Categoria com nome unico.
 - Produto deve ter vendedor associado.
 - Reserva de estoque falha com quantidade insuficiente.
+- Produto pode ser ativado/desativado pelo vendedor.
+- Excluir produto aplica soft delete (desativacao), mantendo historico de pedidos.
+- Produto inativo nao pode ser comprado e nao aparece no catalogo publico.
 
 ### Carrinho
 

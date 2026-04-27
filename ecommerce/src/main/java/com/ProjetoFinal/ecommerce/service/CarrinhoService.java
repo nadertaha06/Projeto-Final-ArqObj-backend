@@ -46,6 +46,9 @@ public class CarrinhoService {
         }
 
         Produto produto = produtoService.buscarPorId(produtoId);
+        if (Boolean.FALSE.equals(produto.getAtivo())) {
+            throw new IllegalStateException("Produto indisponível para compra.");
+        }
 
         if (produto.getVendedor().getId().equals(clienteId)) {
             throw new IllegalStateException("Vendedor não pode comprar seus próprios produtos");

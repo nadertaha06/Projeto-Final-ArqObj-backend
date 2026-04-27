@@ -33,6 +33,10 @@ public class Produto {
 
     private String imagemUrl;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean ativo = true;
+
     @ManyToOne
     @JoinColumn(name = "categoria_id")
     @JsonBackReference("categoria-produtos")

@@ -72,6 +72,7 @@ public class SecurityConfig {
                     .requestMatchers(m.matcher(HttpMethod.POST, "/api/avaliacoes/**")).hasRole("CLIENTE")
                     .requestMatchers(m.matcher(HttpMethod.POST, "/api/produtos/**")).hasRole("VENDEDOR")
                     .requestMatchers(m.matcher(HttpMethod.PUT, "/api/produtos/**")).hasRole("VENDEDOR")
+                    .requestMatchers(m.matcher(HttpMethod.PATCH, "/api/produtos/**")).hasRole("VENDEDOR")
                     .requestMatchers(m.matcher(HttpMethod.DELETE, "/api/produtos/**")).hasRole("VENDEDOR")
                     .anyRequest().authenticated();
             })

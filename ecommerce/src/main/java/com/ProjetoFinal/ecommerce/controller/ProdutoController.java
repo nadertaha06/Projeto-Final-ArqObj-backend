@@ -60,6 +60,11 @@ public class ProdutoController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/{id}/ativo")
+    public ResponseEntity<ProdutoResponse> atualizarStatusAtivo(@PathVariable Long id, @RequestParam Boolean ativo) {
+        return ResponseEntity.ok(ProdutoResponse.from(produtoService.atualizarStatusAtivo(id, ativo)));
+    }
+
     private record ProdutoRequest(
             String nome,
             String descricao,
@@ -96,6 +101,7 @@ public class ProdutoController {
             String descricao,
             BigDecimal preco,
             String imagemUrl,
+            Boolean ativo,
             CategoriaResponse categoria,
             EstoqueResponse estoque,
             VendedorResponse vendedor
@@ -107,6 +113,7 @@ public class ProdutoController {
                     produto.getDescricao(),
                     produto.getPreco(),
                     produto.getImagemUrl(),
+                    produto.getAtivo(),
                     CategoriaResponse.from(produto.getCategoria()),
                     EstoqueResponse.from(produto.getEstoque()),
                     VendedorResponse.from(produto.getVendedor())

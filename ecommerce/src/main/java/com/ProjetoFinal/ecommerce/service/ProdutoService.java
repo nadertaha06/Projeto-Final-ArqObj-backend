@@ -15,11 +15,14 @@ public class ProdutoService {
     }
 
     public Produto criar(Produto produto) {
+        if (produto.getAtivo() == null) {
+            produto.setAtivo(true);
+        }
         return produtoRepository.save(produto);
     }
 
     public List<Produto> listarTodos() {
-        return produtoRepository.findAll();
+        return produtoRepository.findAllPublic();
     }
 
     public Produto buscarPorId(Long id) {
@@ -32,11 +35,11 @@ public class ProdutoService {
     }
 
     public List<Produto> buscarPorCategoria(Long categoriaId) {
-        return produtoRepository.findByCategoriaId(categoriaId);
+        return produtoRepository.findPublicByCategoriaId(categoriaId);
     }
 
     public List<Produto> buscarPorNome(String nome) {
-        return produtoRepository.findByNomeContainingIgnoreCase(nome);
+        return produtoRepository.findPublicByNomeContainingIgnoreCase(nome);
     }
 
     public Produto atualizar(Long id, Produto dadosAtualizados) {
@@ -49,10 +52,13 @@ public class ProdutoService {
         return produtoRepository.save(produto);
     }
 
+    public Produto atualizarStatusAtivo(Long id, Boolean ativo) {
+        Produto produto = buscarPorId(id);
+        produto.setAtivo(ativo);
+        return produtoRepository.save(produto);
+    }
+
     public void deletar(Long id) {
-        if (!produtoRepository.existsById(id)) {
-            throw new NoSuchElementException("Produto não encontrado: " + id);
-        }
-        produtoRepository.deleteById(id);
+        atualizarStatusAtivo(id, false);
     }
 }
