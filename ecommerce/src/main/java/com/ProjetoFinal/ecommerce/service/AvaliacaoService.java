@@ -27,7 +27,7 @@ public class AvaliacaoService {
             throw new IllegalArgumentException("Produto da avaliação é obrigatório");
         }
 
-        var pedido = pedidoRepository.findById(pedidoId)
+        var pedido = pedidoRepository.findDetailedById(pedidoId)
                 .orElseThrow(() -> new NoSuchElementException("Pedido não encontrado: " + pedidoId));
 
         if (pedido.getStatus() != StatusPedido.ENTREGUE) {
