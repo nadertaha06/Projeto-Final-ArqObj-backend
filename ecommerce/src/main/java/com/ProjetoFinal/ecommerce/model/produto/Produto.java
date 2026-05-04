@@ -31,6 +31,7 @@ public class Produto {
     @Column(nullable = false)
     private BigDecimal preco;
 
+    @Column(length = 2000)
     private String imagemUrl;
 
     @Column(nullable = false)
